@@ -25,6 +25,9 @@ npm install
 ```
 3. Create a `.env` file in the root directory with your wallet private keys:
 ```
+nano .env
+```
+```
 PRIVATE_KEY=
 ```
 ## 🚀 Usage
