@@ -33,5 +33,5 @@ PRIVATE_KEY=
 
 Start the bot by running:
 ```bash
-npm main.js
+node main.js
 ```
