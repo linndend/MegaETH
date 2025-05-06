@@ -18,7 +18,7 @@ async function main() {
   try {
     await deployToken();
   } catch (err) {
-    console.error("? Fail deploy token:", err);
+    console.error("❌ Fail deploy token:", err);
   }
  }
 
@@ -26,7 +26,7 @@ async function main() {
   try {
     await runGTE();
   } catch (err) {
-    console.error("? Fail running GTE:", err);
+    console.error("❌ Fail running GTE:", err);
   }
  }
 }
