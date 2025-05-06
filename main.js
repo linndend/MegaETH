@@ -6,11 +6,11 @@ async function main() {
   const response = await prompts({
     type: "select",
     name: "action",
-    message: "Pilih script yang ingin dijalankan:",
+    message: "Select the script you want to run:",
     choices: [
       { title: "Deploy Token", value: "deploy" },
-      { title: "Jalankan GTE", value: "GTE" },
-      { title: "Jalankan Semua", value: "all" }
+      { title: "Run GTE", value: "GTE" },
+      { title: "Running All", value: "all" }
     ]
   });
 
@@ -18,7 +18,7 @@ async function main() {
   try {
     await deployToken();
   } catch (err) {
-    console.error("? Gagal deploy token:", err);
+    console.error("? Fail deploy token:", err);
   }
  }
 
@@ -26,7 +26,7 @@ async function main() {
   try {
     await runGTE();
   } catch (err) {
-    console.error("? Gagal jalankan GTE:", err);
+    console.error("? Fail running GTE:", err);
   }
  }
 }
