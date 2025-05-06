@@ -5,7 +5,6 @@ An automated bot for interacting with the MegaETH Protocol on the MegaETH testne
 - Automatically interacts with MegaETH Protocol (Swap on GTE and Deploy Token)
 - Automatic reporting/logging of transactions
 - 24-hour loop cycle for regular farming activities
-- Built-in error handling and retry mechanism
 
 ## 🛠️ Prerequisites
 - Node.js (v14 or higher)
