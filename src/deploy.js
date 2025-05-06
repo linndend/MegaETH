@@ -60,33 +60,33 @@ async function deployToken() {
     const supply = randomSupply();
     const totalSupply = BigInt(supply) * 10n ** 18n;
 
-    console.log(`?? Deploying ${name} (${symbol}) with supply ${supply} to MegaETH...`);
+    console.log(`- Deploying ${name} (${symbol}) with supply ${supply} to MegaETH...`);
 
     const contract = await factory.deploy(name, symbol, totalSupply, {
       gasLimit: 3_000_000n,
     });
 
-    console.log("? Waiting for deployment confirmation...");
+    console.log("⏳ Waiting for deployment confirmation...");
     await contract.waitForDeployment();
 
-    console.log(`? Deployed at: ${contract.target}`);
-    console.log(`?? Explorer: https://www.megaexplorer.xyz/address/${contract.target}`);
+    console.log(`✅ Deployed at: ${contract.target}`);
+    console.log(`~ Explorer: https://www.megaexplorer.xyz/address/${contract.target}`);
 
     const token = new ethers.Contract(contract.target, abi, wallet);
     const randomAddresses = Array.from({ length: 10 }, () => ethers.Wallet.createRandom().address);
     const sendAmount = ethers.parseUnits("1000", 18);
 
-    console.log("?? Sending 1000 tokens each to 10 random addresses...");
+    console.log("✅ Sending 1000 tokens each to 10 random addresses...");
 
     for (const address of randomAddresses) {
       const tx = await token.transfer(address, sendAmount, {
         gasLimit: 100_000n,
       });
       await tx.wait();
-      console.log(`? Sent 1000 ${symbol} to ${address}`);
+      console.log(`✅ Sent 1000 ${symbol} to ${address}`);
     }
   } catch (err) {
-    console.error("? Error saat deploy token:", err);
+    console.error("❌ Error saat deploy token:", err);
   }
 }
 
