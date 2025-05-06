@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "ethers": "^6.13.7",
+    "fs": "^0.0.1-security",
+    "prompts": "^2.4.2",
+    "solc": "^0.8.29",
+    "web3": "^1.8.0"
+  },
+  "name": "megaeth",
+  "version": "1.0.0",
+  "description": "BOT MegaETH",
+  "main": "main.js",
+  "scripts": {
+    "test": "npm run start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/linndend/MegaETH.git"
+  },
+  "keywords": [
+    "MegaETH"
+  ],
+  "author": "0xlind",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/linndend/MegaETH/issues"
+  },
+  "homepage": "https://github.com/linndend/MegaETH#readme"
+}
