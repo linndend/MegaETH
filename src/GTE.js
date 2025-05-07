@@ -16,7 +16,7 @@ const CYCLE_INTERVAL = 24 * 60 * 60 * 1000;
 const GTE_ROUTER = '0xa6b579684e943f7d00d616a48cf99b5147fc57a5';
 const WETH_ADDRESS = '0x776401b9BC8aAe31A685731B7147D4445fD9FB19';
 const CHAIN_ID = 6342;
-const Contracts = '39584631314667805491088689848282554447608744687563418855093496965842959155466';
+const addressBigInt = '39584631314667805491088689848282554447608744687563418855093496965842959155466';
 
 const TokenListGTE = [
     '0x9629684df53db9e4484697d0a50c442b2bfa80a8',
@@ -316,7 +316,7 @@ async function depositTeko(privateKey) {
                 { type: 'uint256', name: 'amount' },
                 { type: 'address', name: 'to' }
             ]
-        }, [Contracts, depositAmount.toString(), walletAddress]);
+        }, [addressBigInt, depositAmount.toString(), walletAddress]);
 
         const txParams = {
             from: walletAddress,
