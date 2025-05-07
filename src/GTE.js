@@ -16,6 +16,7 @@ const CYCLE_INTERVAL = 24 * 60 * 60 * 1000;
 const GTE_ROUTER = '0xa6b579684e943f7d00d616a48cf99b5147fc57a5';
 const WETH_ADDRESS = '0x776401b9BC8aAe31A685731B7147D4445fD9FB19';
 const CHAIN_ID = 6342;
+const Contracts = '39584631314667805491088689848282554447608744687563418855093496965842959155466';
 
 const TokenListGTE = [
     '0x9629684df53db9e4484697d0a50c442b2bfa80a8',
@@ -265,6 +266,76 @@ async function mintTekoTest(privateKey) {
     console.log(`❌ Failed: ${failCount} tokens`);
     
     return successCount > 0;
+}
+
+async function depositTeko(privateKey) {
+    return retryOperation(async () => {
+        printTitle('Initiating Deposit');
+        
+        const TEKO_ROUTER = '0x13c051431753fce53eaec02af64a38a273e198d0';
+        const tkUSDC_ADDRESS = '0xfaf334e157175ff676911adcf0964d7f54f2c424';
+        const account = web3.eth.accounts.privateKeyToAccount(privateKey);
+        const walletAddress = account.address;
+        const tkUSDC = new web3.eth.Contract(erc20ABI, tkUSDC_ADDRESS);
+        const maxApproval = web3.utils.toBN(2).pow(web3.utils.toBN(256)).subn(1);
+
+        // Check balance first
+        const balance = await tkUSDC.methods.balanceOf(walletAddress).call();
+        if (web3.utils.toBN(balance).isZero()) {
+            throw new Error('SKIP: No tkUSDC balance');
+        }
+
+        // Proceed with approval check
+        const allowance = await tkUSDC.methods.allowance(walletAddress, TEKO_ROUTER).call();
+        if (web3.utils.toBN(allowance).lt(maxApproval)) {
+            printStep('🔒', 'Approving tokens');
+            const approveTx = tkUSDC.methods.approve(TEKO_ROUTER, maxApproval);
+            
+            const txParams = {
+                from: walletAddress,
+                to: tkUSDC_ADDRESS,
+                data: approveTx.encodeABI(),
+                chainId: CHAIN_ID,
+                nonce: await web3.eth.getTransactionCount(walletAddress, 'pending'),
+                gasPrice: await web3.eth.getGasPrice()
+            };
+
+            txParams.gas = await approveTx.estimateGas({ from: walletAddress });
+            const signedTx = await web3.eth.accounts.signTransaction(txParams, privateKey);
+            await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        }
+
+        // Calculate deposit amount (3% of balance)
+        const depositAmount = web3.utils.toBN(balance).muln(3).divn(100);
+        
+        const transactionData = web3.eth.abi.encodeFunctionCall({
+            name: 'deposit',
+            type: 'function',
+            inputs: [
+                { type: 'uint256', name: 'id' },
+                { type: 'uint256', name: 'amount' },
+                { type: 'address', name: 'to' }
+            ]
+        }, [Contracts, depositAmount.toString(), walletAddress]);
+
+        const txParams = {
+            from: walletAddress,
+            to: TEKO_ROUTER,
+            data: transactionData,
+            chainId: CHAIN_ID,
+            nonce: await web3.eth.getTransactionCount(walletAddress, 'pending'),
+            gasPrice: await web3.eth.getGasPrice()
+        };
+
+        txParams.gas = await web3.eth.estimateGas(txParams);
+        
+        const signedTx = await web3.eth.accounts.signTransaction(txParams, privateKey);
+        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        
+        printSuccess(`Deposit completed: ${receipt.transactionHash}`);
+        await randomDelay();
+        return receipt;
+    }, 'Teko Deposit');
 }
 
 async function mintCapUSD(privateKey) {
