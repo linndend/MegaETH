@@ -9,7 +9,7 @@ function randomString(length) {
 }
 
 function randomTokenName() {
-  const adjectives = ["Mega", "Memek", "Anjink", "Kontol", "Spheron", "Rohit"];
+  const adjectives = ["Mega", "Kriss", "PakTua", "OM", "Spheron", "Rohit"];
   const nouns = ["Token", "Coin", "Credit", "Cash", "Byte"];
   return `${adjectives[Math.floor(Math.random() * adjectives.length)]}${nouns[Math.floor(Math.random() * nouns.length)]}`;
 }
@@ -47,15 +47,21 @@ function compileContract() {
 async function deployToken() {
   try {
     const rpc = "https://carrot.megaeth.com/rpc";
-    const privateKey = process.env.PRIVATE_KEY;
-    if (!privateKey) throw new Error("? PRIVATE_KEY not found in .env");
+    const PRIVATE_KEYS = fs.readFileSync('./wallets.txt', 'utf-8')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+    if (PRIVATE_KEYS.length === 0) throw new Error("No private keys found in wallets.txt");
 
     const { abi, bytecode } = compileContract();
     const provider = new ethers.JsonRpcProvider(rpc);
+      for (let i = 0; i < PRIVATE_KEYS.length; i++) {
+    const privateKey = PRIVATE_KEYS[i];
+      console.log(`Deploying for wallet ${i + 1} with address: ${new ethers.Wallet(privateKey).address}`);
     const wallet = new ethers.Wallet(privateKey, provider);
     const factory = new ethers.ContractFactory(abi, bytecode, wallet);
 
-    const name = randomTokenName();
+    const name   = randomTokenName();
     const symbol = randomString(3);
     const supply = randomSupply();
     const totalSupply = BigInt(supply) * 10n ** 18n;
@@ -84,8 +90,10 @@ async function deployToken() {
       });
       await tx.wait();
       console.log(`✅ Sent 1000 ${symbol} to ${address}`);
+      await new Promise(resolve => setTimeout(resolve, 10000));
+     }
     }
-  } catch (err) {
+  } catch (error) {
     console.error("❌ Error saat deploy token:", err);
   }
 }
