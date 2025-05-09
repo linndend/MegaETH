@@ -1,5 +1,6 @@
 const { deployToken } = require("./src/deploy");
 const { runGTE } = require("./src/GTE");
+const { wrapETH } = require("./src/rubic");
 const prompts = require("prompts");
 
 async function main() {
@@ -10,6 +11,7 @@ async function main() {
     choices: [
       { title: "Deploy Token", value: "deploy" },
       { title: "Run GTE", value: "GTE" },
+      { title: "Rubic", value: "Rubic" },
       { title: "Running All", value: "all" }
     ]
   });
@@ -29,5 +31,12 @@ async function main() {
     console.error("❌ Fail running GTE:", err);
   }
  }
+  if (response.action === "Rubic" || response.action === "all") {
+  try {
+    await wrapETH();
+  } catch (err) {
+    console.error("❌ Fail running Rubic:", err);
+   }
+  }
 }
 main();
