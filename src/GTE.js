@@ -4,14 +4,16 @@ const web3 = new Web3('https://carrot.megaeth.com/rpc');
 
 async function runGTE() {
 
-// Configuration
 const RETRY_CONFIG = {
     maxRetries: 3,
     initialDelay: 30000,
     backoffFactor: 2
 };
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const PRIVATE_KEYS = fs.readFileSync('./wallets.txt', 'utf-8')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
 const CYCLE_INTERVAL = 24 * 60 * 60 * 1000;
 const GTE_ROUTER = '0xa6b579684e943f7d00d616a48cf99b5147fc57a5';
 const WETH_ADDRESS = '0x776401b9BC8aAe31A685731B7147D4445fD9FB19';
@@ -19,7 +21,7 @@ const CHAIN_ID = 6342;
 const addressBigInt = '39584631314667805491088689848282554447608744687563418855093496965842959155466';
 
 const TokenListGTE = [
-    '0x9629684df53db9e4484697d0a50c442b2bfa80a8',
+  	'0x9629684df53db9e4484697d0a50c442b2bfa80a8',
 	'0x10a6be7d23989d00d528e68cf8051d095f741145',
 	'0xe49e35b7165cc171587df3247233f4302ca319a1',
 	'0xfaf334e157175ff676911adcf0964d7f54f2c424',
@@ -94,11 +96,11 @@ function printStep(emoji, message) {
 }
 
 function printSuccess(message) {
-    console.log(`✅  ${message}`);
+    console.log(`âœ…  ${message}`);
 }
 
 function printError(message) {
-    console.log(`❌  ${message}`);
+    console.log(`âŒ  ${message}`);
 }
 
 // Utility Functions
@@ -112,7 +114,7 @@ function shuffleArray(array) {
 
 async function randomDelay(min = 60, max = 180) {
     const delay = Math.floor(Math.random() * (max - min + 1)) + min;
-    printStep('⏳', `Pausing for ${delay}s`);
+    printStep('â³', `Pausing for ${delay}s`);
     return new Promise(resolve => setTimeout(resolve, delay * 1000));
 }
 
@@ -126,7 +128,7 @@ async function retryOperation(operation, operationName) {
         } catch (error) {
             // Handle skip requests immediately
             if (error.message.startsWith('SKIP:')) {
-                printStep('⏭️', error.message);
+                printStep('â­ï¸', error.message);
                 return { success: false, error };
             }
             
@@ -195,7 +197,7 @@ async function SwapGTE(privateKey) {
 
             txParams.gas = await web3.eth.estimateGas(txParams);
 
-            printStep('💸', `Swapping ${web3.utils.fromWei(value)} ETH → ${tokenName}`);
+            printStep('ðŸ’¸', `Swapping ${web3.utils.fromWei(value)} ETH â†’ ${tokenName}`);
 
             const signedTx = await web3.eth.accounts.signTransaction(txParams, privateKey);
             const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
@@ -220,7 +222,7 @@ async function mintTekoTest(privateKey) {
 
     for (const token of shuffledTokens) {
         const result = await retryOperation(async () => {
-            printStep('🛠️', `Attempting ${token.name} mint`);
+            printStep('ðŸ› ï¸', `Attempting ${token.name} mint`);
             
             const amountInUnits = web3.utils.toBN(
                 (Number(token.amount) * 10 ** token.decimals).toLocaleString('fullwide', { useGrouping: false })
@@ -262,8 +264,8 @@ async function mintTekoTest(privateKey) {
     }
 
     printTitle('Minting Summary');
-    console.log(`✅ Success: ${successCount} tokens`);
-    console.log(`❌ Failed: ${failCount} tokens`);
+    console.log(`âœ… Success: ${successCount} tokens`);
+    console.log(`âŒ Failed: ${failCount} tokens`);
     
     return successCount > 0;
 }
@@ -288,7 +290,7 @@ async function depositTeko(privateKey) {
         // Proceed with approval check
         const allowance = await tkUSDC.methods.allowance(walletAddress, TEKO_ROUTER).call();
         if (web3.utils.toBN(allowance).lt(maxApproval)) {
-            printStep('🔒', 'Approving tokens');
+            printStep('ðŸ”’', 'Approving tokens');
             const approveTx = tkUSDC.methods.approve(TEKO_ROUTER, maxApproval);
             
             const txParams = {
@@ -383,7 +385,7 @@ async function processWallet(privateKey) {
     const operations = shuffleArray([
         { name: 'GTE Swap', fn: SwapGTE },
         { name: 'Deposit', fn: depositTeko },
-		{ name: 'Mint Teko Token', fn: mintTekoTest },
+	{ name: 'Mint Teko Token', fn: mintTekoTest },
         { name: 'cUSD Mint', fn: mintCapUSD }
     ]);
 
@@ -392,33 +394,33 @@ async function processWallet(privateKey) {
 
     for (const op of operations) {
         const result = await retryOperation(() => op.fn(privateKey), op.name);
-        if (!result.success) printStep('⏭️', `Skipped ${op.name}`);
+        if (!result.success) printStep('â­ï¸', `Skipped ${op.name}`);
     }
 }
 
 async function processWallets() {
     try {
-        const privateKey = process.env.PRIVATE_KEY;
+        for (const privateKey of PRIVATE_KEYS) {
+            if (!web3.utils.isHexStrict(privateKey)) {
+                printError(`Invalid private key: ${privateKey}`);
+                continue;
+            }
 
-        if (!web3.utils.isHexStrict(privateKey)) {
-            throw new Error('Invalid private key');
+            printTitle(`Processing Wallet: ${web3.eth.accounts.privateKeyToAccount(privateKey).address}`);
+            await processWallet(privateKey);
+            await randomDelay(10, 30);
         }
-
-        printTitle(`Processing Wallet`);
-        await processWallet(privateKey);
     } catch (error) {
         printError(`Fatal error: ${error.message}`);
     }
 }
 
-
-// Main Execution
 async function main() {
     while (true) {
         
         await processWallets();
         
-        printStep('⏳', `Next cycle in ${CYCLE_INTERVAL/(1000*60*60)} hours`);
+        printStep('â³', `Next cycle in ${CYCLE_INTERVAL/(1000*60*60)} hours`);
         await new Promise(resolve => setTimeout(resolve, CYCLE_INTERVAL));
     }
 }
