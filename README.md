@@ -22,12 +22,14 @@ cd MegaETH
 ```bash
 npm install
 ```
-3. Create a `.env` file in the root directory with your wallet private keys:
+3. Create a `wallets.txt` file in the root directory with your wallet private keys:
 ```
-nano .env
+nano wallets.txt
 ```
+format one per line :
 ```
-PRIVATE_KEY=
+0x
+0x
 ```
 ## 🚀 Usage
 
